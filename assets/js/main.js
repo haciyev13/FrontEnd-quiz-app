@@ -200,25 +200,17 @@ let params = generateSearch();
 
 //! Action Functions
 
-function updateUrlWithParams(newParams) {
-
-     console.log(newParams);
+function updateUrlWithParams(type, newParams) {
 
      let url = new URL(window.location.href);
 
-     if (newParams.catagoryID != null && newParams.questionID != null) {
-          Object.entries(newParams).forEach(([key, value]) => url.searchParams.set(key, value))
-     } else {
-          alert("Hele Ki Suallarimiz Movcud Deyil")
+     if (type == "delete") {
+          url.search = '';
+     } else if (type == "update") {
+          Object.entries(newParams).forEach(([key, value]) => url.searchParams.set(key, value));
+          generateQuestionPage(newParams.catagoryID, newParams.questionID)
      }
-
-     
-     window.history.back(url.searchParams.delete("catagoryID", "questionID"));
-
-
-
      window.history.replaceState({}, "", url)
-     generateQuestionPage(newParams.catagoryID, newParams.questionID)
 }
 
 
@@ -226,15 +218,11 @@ function updateUrlWithParams(newParams) {
 //! Get Functions
 function getFirstQuestionIDbyCategory(catId) {
      let category = data.find(item => item.id == catId);
-
      if (category && category.questions && category.questions.length > 0) {
           return category.questions[0].id;
      } else {
           return null;
      }
-
-
-
 }
 
 function generateSearch() {
@@ -282,9 +270,9 @@ function handleCategoryClick(event) {
 
      let newParams = {
           catagoryID: catID,
-          questionID: firstQuestionID
+          questionID: firstQuestionID,
      }
-     updateUrlWithParams(newParams)
+     updateUrlWithParams("update", newParams)
 }
 
 function handleAnswerClick(event) {
@@ -292,6 +280,34 @@ function handleAnswerClick(event) {
           item.classList.remove("selected");
      });
      event.target.classList.add("selected");
+}
+
+function checkAnswer(questionData) {
+
+     let submitBtn = document.querySelector("#submitAnswerBtn");
+
+
+
+     submitBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          let selectedElement = document.querySelector(".question__one-item.selected");
+          let selectedID = selectedElement.getAttribute("data-id");
+          let rightElement = document.querySelector(`.question__one-item[data-id='${questionData.rightAnswer}']`);
+
+          if (!selectedID) {
+               e.target = disabled;
+               if (selectedID == questionData.rightAnswer) {
+                    selectedElement.classList.add("right");
+                    selectedElement.classList.remove("selected");
+               } else {
+                    selectedElement.classList.add("wrong");
+                    selectedElement.classList.remove("selected");
+                    rightElement.classList.add("right");
+               }
+          }
+
+
+     })
 }
 
 
@@ -339,29 +355,36 @@ function generateCategoryData(x) {
 
 function generateQuestionPage(catID, questionID) {
      let question = getQuestionByIDs(catID, questionID);
-     generateAnswerData(question.answer);
+     console.log(question);
 
-     let questionBlock = document.querySelector(".question__one-desc");
-     let questionBlockBtn = document.querySelector(".question__one-lists");
-     console.log(questionBlock);
-
-     questionBlock.innerHTML = `
-     <div class="question__one-info">
-               <p class="question-title">Question 6 of 10</p>
-               <p class="question-info">
-                    ${question.text}
-               </p>
-               <div class="quiz-block_progress">
+     if (question) {
+          generateAnswerData(question.answer);
+          let questionBlock = document.querySelector(".question__one-desc");
+          questionBlock.innerHTML = `
+          <div class="question__one-info">
+                    <p class="question-title">Question 6 of 10</p>
+                    <p class="question-info">
+                         ${question.text}
+                    </p>
+                    <div class="quiz-block_progress">
                     <p style="width: 45%"></p>
-               </div>
-     </div>
-     `
-     questionBlockBtn.innerHTML += `
-     <div class="question__one-btn">
-                                   <a href="#">Submit Answer</a>
-                              </div>
-     `
-     callAnswerOrCategory()
+                    </div>
+                    </div>
+                    `
+
+          let questionBlockBtn = document.querySelector(".question__one-lists");
+
+          questionBlockBtn.innerHTML += `
+          <div class="question__one-btn">
+               <button id="submitAnswerBtn">Submit Answer</button>
+          </div>
+          `
+          callAnswerOrCategory()
+          checkAnswer(question)
+     }
+     else {
+          updateUrlWithParams("delete");
+     }
 
 }
 

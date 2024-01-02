@@ -421,13 +421,14 @@ h1 {
      color: var(--color-white);
 }
 
-.question__one-btn a {
+.question__one-btn button {
+     border: none;
      display: block;
      width: 100%;
      margin-bottom: 20px;
      color: var(--color-white);
      font-family: Rubik;
-     font-size: 28px;
+     font-size: 20px;
      font-style: normal;
      font-weight: 500;
      line-height: 100%;
